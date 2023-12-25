@@ -1,0 +1,7 @@
+target
+.bsp
+.idea
+project/target
+/src/main/resources/
+.aoc_tiles/*
+!.aoc_tiles/tiles/
