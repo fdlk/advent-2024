@@ -5,3 +5,4 @@ project/target
 /src/main/resources/
 .aoc_tiles/*
 !.aoc_tiles/tiles/
+/session.cookie
