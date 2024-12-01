@@ -8,3 +8,5 @@ val sortedPairs = left.sorted.zip(right.sorted)
 val diffs = sortedPairs.map({case (a, b) => Math.abs(a - b)})
 val part1 = diffs.sum
 
+def similarityScore(a: Int): Int = a * right.count(_ == a)
+val part2 = left.map(similarityScore).sum
