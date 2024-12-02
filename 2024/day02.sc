@@ -1,7 +1,7 @@
 import common.loadPackets
 
 val input = loadPackets(List("day02.txt"))
-  .map(_.split("\\s+").map(_.toInt))
+  .map(_.split("\\s+").map(_.toInt).toSeq)
 
 extension (list: Seq[Int])
   def pairs: Seq[(Int, Int)] = list.zip(list.tail)
