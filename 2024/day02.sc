@@ -11,10 +11,8 @@ extension (list: Seq[Int])
   def diffsWithinRange(r: Range): Boolean =
     pairs.map(_ - _).map(_.abs).forall(r.contains)
   def safe: Boolean = monotonous && diffsWithinRange(1 to 3)
-  def dropIndex(index: Int): Seq[Int] =
-    list.zipWithIndex.filter(_._2 != index).map(_._1)
   def safeWithIndexDropped: Boolean =
-    list.indices.exists(index => dropIndex(index).safe)
+    list.indices.exists(i => list.patch(i, Nil, 1).safe)
 
 val part1 = input.count(_.safe)
 val part2 = input.count(_.safeWithIndexDropped)
