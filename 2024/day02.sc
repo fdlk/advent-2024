@@ -12,7 +12,7 @@ extension (list: Seq[Int])
     pairs.map(_ - _).map(_.abs).forall(r.contains)
   def safe: Boolean = monotonous && diffsWithinRange(1 to 3)
   def dropIndex(index: Int): Seq[Int] =
-    list.zipWithIndex.filter((e, i) => i != index).map(_._1)
+    list.zipWithIndex.filter(_._2 != index).map(_._1)
   def safeWithIndexDropped: Boolean =
     list.indices.exists(index => dropIndex(index).safe)
 
