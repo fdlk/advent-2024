@@ -8,9 +8,9 @@ extension (list: Seq[Int])
   def increasing: Boolean = pairs.forall(_ < _)
   def decreasing: Boolean = pairs.forall(_ > _)
   def monotonous: Boolean = increasing || decreasing
-  def diffsWithinRange(r: Range): Boolean =
-    pairs.map(_ - _).map(_.abs).forall(r.contains)
-  def safe: Boolean = monotonous && diffsWithinRange(1 to 3)
+  def diffs: Seq[Int] = pairs.map(_ - _).map(_.abs)
+  def gradual: Boolean = diffs.forall((1 to 3).contains)
+  def safe: Boolean = monotonous && gradual
   def safeWithIndexDropped: Boolean =
     list.indices.exists(i => list.patch(i, Nil, 1).safe)
 
