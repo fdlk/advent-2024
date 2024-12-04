@@ -2,8 +2,8 @@ import common.loadPackets
 
 val input = loadPackets(List("day04.txt")).toArray
 
-val xs = input.indices
-val ys = input.head.indices
+val ys = input.indices
+val xs = input.head.indices
 
 case class Point(x: Int, y: Int):
   def onGrid: Boolean = xs.contains(x) && ys.contains(y)
