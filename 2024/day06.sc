@@ -42,8 +42,9 @@ case class State(droid: Point = Point(xStart, yStart), facing: Direction = Direc
     case x => x
   }
 
-val part1 = LazyList.iterate[Option[State]](Some(State()))(_.flatMap(_.move))
-  .takeWhile(_.nonEmpty).map(_.get.droid).toSet.size
+val patrolled = LazyList.iterate[Option[State]](Some(State()))(_.flatMap(_.move))
+  .takeWhile(_.nonEmpty).map(_.get.droid).toSet
+val part1 = patrolled.size
 
 def placeObstacle(obstacle: Point): List[String] =
   input.zipWithIndex
@@ -58,12 +59,12 @@ def placeObstacle(obstacle: Point): List[String] =
     )
 
 def isLoop(map: List[String]) =
-  List.iterate[Option[State]](Some(State(map = map)), 100_000)(_.flatMap(_.move))
-    .takeWhile(_.nonEmpty).size == 100_000
+  LazyList.iterate[Option[State]](Some(State(map = map)))(_.flatMap(_.move))
+    .takeWhile(_.nonEmpty)
+    .map(_.get.copy(map = Nil))
+    .scanLeft[(Set[State], Boolean)]((Set(), false))((soFar, state) => soFar match {
+      case (visited, _) => (visited + state, visited.contains(state))
+    })
+    .exists(_._2)
 
-val maps = for
-  x <- xs
-  y <- ys
-yield placeObstacle(Point(x, y))
-
-val part2 = maps.count(isLoop)
+val part2 = patrolled.map(placeObstacle).count(isLoop)
