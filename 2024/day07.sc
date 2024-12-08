@@ -6,7 +6,8 @@ val input = loadPackets(List("day07.txt"))
   })
 
 case class Algebra(operators: List[(BigInt, BigInt) => BigInt]):
-  def canBeTrue(desiredResult: BigInt, operands: List[BigInt], soFar: BigInt = 0): Boolean = operands match {
+  def canBeTrue(desiredResult: BigInt, operands: List[BigInt], soFar: BigInt = 0): Boolean = 
+    if soFar > desiredResult then false else operands match {
     case Nil => desiredResult == soFar
     case operand :: rest => operators.exists(op => canBeTrue(desiredResult, rest, op(soFar, operand)))
   }
