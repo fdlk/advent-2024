@@ -14,7 +14,7 @@ case class Algebra(operators: List[(BigInt, BigInt) => BigInt]):
     case (result, operands) => canBeTrue(result, operands)
   }).map(_._1).sum
 
-def concat(a: BigInt, b: BigInt) = BigInt(a.toString + b.toString)
+def concat(a: BigInt, b: BigInt) = BigInt(s"${a}${b}")
 
 val part1 = Algebra(List(_+_, _*_)).calibrationResult
 val part2 = Algebra(List(_+_, _*_, concat)).calibrationResult
