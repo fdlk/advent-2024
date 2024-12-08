@@ -24,6 +24,4 @@ def isAntinode(candidate: Point, antenna: Point, factors: Seq[Int] = Seq(1)): Bo
     .contains(candidate)
 
 val part1 = points.count(candidate => antennas.exists(antenna => isAntinode(candidate, antenna)))
-
-val factors = (-xs.last - ys.last) to (xs.last + ys.last)
-val part2 = points.count(candidate => antennas.exists(antenna => isAntinode(candidate, antenna, factors)))
+val part2 = points.count(candidate => antennas.exists(antenna => isAntinode(candidate, antenna, -xs.last to xs.last)))
