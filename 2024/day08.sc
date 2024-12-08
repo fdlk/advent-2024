@@ -29,3 +29,18 @@ def isAntinode(candidate: Point, antenna: Point): Boolean = {
 
 val part1 = points.count(candidate =>
   antennas.exists(antenna => isAntinode(candidate, antenna)))
+
+val range = ((-xs.last - ys.last) to (xs.last + ys.last)).filter(_ != 1)
+
+def isAntinode2(candidate: Point, antenna: Point): Boolean = {
+  antennasByChar(antenna.charAt).exists(other => {
+    val diff = antenna.plus(other, -1)
+    range.exists(factor => {
+      val opposite = antenna.plus(diff, factor)
+      candidate == opposite
+    })
+  })
+}
+
+val part2 = points.count(candidate =>
+  antennas.exists(antenna => isAntinode2(candidate, antenna)))
