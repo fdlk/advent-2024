@@ -21,4 +21,29 @@ def compress(disk: Disk, index: Int): Disk =
     case None => compress(trimRight(disk.updated(index, disk.last).dropRight(1)), index + 1)
   }
 
-val part1 = compress(blocks, 0).map(_.get.toLong).zipWithIndex.map(_ * _).sum
+def checksum(disk: Disk): Long = disk.zipWithIndex
+  .map({
+    case (Some(id), index) => id * index.toLong
+    case _ => 0
+  }).sum
+
+val part1 = checksum(compress(blocks, 0))
+
+def compress2(disk: Disk, id: Int): Disk =
+  if id < 0 then disk
+  else {
+    val size = disk.count(_.contains(id))
+    val targetStart = disk.indices
+      .find(i => (0 until size).map(_ + i).forall(index => index < disk.size && disk(index).isEmpty))
+    val target = targetStart.map(start => start until start + size)
+    if target.isEmpty || targetStart.get > disk.indexOf(Some(id))
+    then compress2(disk, id - 1)
+    else compress2(disk.zipWithIndex.map({
+      case (Some(blockId), _) if blockId == id => None
+      case (_, index) if target.get.contains(index) => Some(id)
+      case (block, _) => block
+    }), id - 1)
+  }
+
+val lastId = blocks.flatten.max
+val part2 = checksum(compress2(blocks, lastId))
