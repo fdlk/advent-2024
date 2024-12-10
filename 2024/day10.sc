@@ -39,4 +39,11 @@ def score(point: Point): Set[Point] =
   then Set(point)
   else point.neighbors.toSet.flatMap(score)
 
-trailheads.map(score).map(_.size).sum
+val part1 = trailheads.map(score).map(_.size).sum
+
+def rating(point: Point): Int =
+  if point.height == 9
+  then 1
+  else point.neighbors.map(rating).sum
+
+val part2 = trailheads.map(rating).sum
