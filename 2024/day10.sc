@@ -6,7 +6,7 @@ val ys = input.indices
 val xs = input.head.indices
 
 enum Direction:
-  case North, East, South, West
+  case Up, Right, Down, Left
 
 case class Point(x: Int, y: Int):
   def onGrid: Boolean = xs.contains(x) && ys.contains(y)
@@ -14,15 +14,15 @@ case class Point(x: Int, y: Int):
   def plus(d: Point, steps: Int = 1): Point = copy(x = x + d.x * steps, y = y + d.y * steps)
 
   def move(d: Direction): Point = d match {
-    case Direction.North => plus(Point(0, -1))
-    case Direction.East => plus(Point(1, 0))
-    case Direction.South => plus(Point(0, 1))
-    case Direction.West => plus(Point(-1, 0))
+    case Direction.Up => plus(Point(0, -1))
+    case Direction.Right => plus(Point(1, 0))
+    case Direction.Down => plus(Point(0, 1))
+    case Direction.Left => plus(Point(-1, 0))
   }
 
   def height: Int = input(y)(x)
 
-  def neighbors: Seq[Point] = Direction.values
+  def neighbors: Seq[Point] = Direction.values.toSeq
     .map(move)
     .filter(_.onGrid)
     .filter(_.height == height + 1)
