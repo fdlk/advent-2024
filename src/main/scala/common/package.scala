@@ -1,6 +1,7 @@
 import java.io.File
 import scala.annotation.tailrec
 import scala.collection.convert.ImplicitConversions.`iterable AsScalaIterable`
+import scala.collection.mutable
 
 package object common {
 
@@ -71,6 +72,11 @@ package object common {
     } finally {
       wordstream.close()
     }
+  }
+
+  case class Memo[A, B](f: (A) => B) extends ((A) => B) {
+    private val cache = mutable.Map.empty[A, B]
+    def apply(x: A): B = cache getOrElseUpdate(x, f(x))
   }
 
   // https://stackoverflow.com/questions/40875537/fp-lcm-in-scala-in-1-line
