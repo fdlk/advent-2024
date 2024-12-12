@@ -22,15 +22,21 @@ case class Point(x: Int, y: Int):
 
   def neighbors: Seq[Point] = Direction.values.toSeq.map(move)
 
-  def fences: Set[List[Point]] = neighbors.filter(_.charAt != charAt).toSet.map(neighbor => List(neighbor, this))
-
   def charAt: Option[Char] = if onGrid then Some(input(y)(x)) else None
+
+  def fences = neighbors.filter(_.charAt != charAt).map(neighbor => Fence(this, neighbor))
+
+  case class Fence(inside: Point, outside: Point):
+    def isHorizontal: Boolean = inside.x == outside.x
+
+    def inCommon: Int = if isHorizontal then inside.x else inside.y
+
+    def between: (Int, Int) = if isHorizontal then (inside.y, outside.y) else (inside.x, outside.x)
 
 @tailrec
 def floodFill(points: Set[Point]): Set[Point] = {
   val char = points.head.charAt
-  val updated = points ++ points.flatMap(_.neighbors)
-    .filter(_.charAt == char)
+  val updated = points ++ points.flatMap(_.neighbors).filter(_.charAt == char)
   if updated == points then points else floodFill(updated)
 }
 
@@ -47,26 +53,54 @@ val islands = points.map(Set(_)).map(floodFill).distinct
 
 val part1 = islands.map(score).sum
 
-def findSublist(l: List[Int]): List[Int] =
-  l.sliding(2).takeWhile(pair => pair.head + 1 == pair(1)).flatMap(_.toList).distinct.toList
+def countAdjacentElementsFromHead(l: List[Int]): Int =
+  l.sliding(2)
+    .takeWhile({ case List(a, b) => a + 1 == b })
+    .size + 1
 
-def findSublists(l: List[Int]): List[List[Int]] =
-  if l.isEmpty then Nil
-  else if l.size == 1 then List(l)
-  else {
-    val sublist = findSublist(l)
-    if sublist.isEmpty
-    then List(l.head) :: findSublists(l.tail)
-    else sublist :: findSublists(l.drop(sublist.length))
-  }
+def countSublists(l: List[Int]): Int =
+  if l.isEmpty then 0
+  else if l.size == 1 then 1
+  else 1 + countSublists(l.drop(countAdjacentElementsFromHead(l)))
 
+/**
+ *  - Group the horizontal fences by the row numbers of the points inside and outside the fence.
+ *  - Then for each fence in such a group determine the column numbers of the fence
+ *  - Sort the column numbers. Each side is a group of adjacent column numbers.
+ *  - Do the reverse for the vertical fences.
+ *
+ * ==Example==
+ * An example counting horizontal fences of a U-shaped island:{{{
+ *   01234
+ *  0
+ *    - -
+ *  1 B B
+ *  2 BBB
+ *    ---
+ *  3
+ * }}}
+ *
+ * The top row of horizontal fences between rows `(1,0)` has list of column numbers `1,3`. Two sublists of size 1. So there are 2 sides.
+ *
+ * The bottom row of horizontal fences between rows `(2,3)` has list of column numbers `1,2,3`. One sublist of size 3. So there is 1 side.
+ *
+ * Vertical fences of the same island:{{{
+ *   0 123 4
+ *  0
+ *  1 |B B|
+ *  2 |BBB|
+ *  3
+ * }}}
+ * The left column of vertical fences between columns `(1,0)` has list of row numbers `1,2`. One sublist of size 2. So there is 1 side.
+ *
+ * Right column of vertical fences between columns `(3,4)` has list of row numbers `1,2`. One sublist of size 2. So there is 1 side.
+ */
 def sides(island: Set[Point]): Int =
-  val fences = island.flatMap(_.fences)
-  fences.filter(_.map(_.x).distinct.size == 1)
-    .groupBy(_.map(_.y))
-    .map((_, xs) => findSublists(xs.flatMap(_.map(_.x).toSet).toList.sorted).size).sum
-    + fences.filter(_.map(_.y).distinct.size == 1)
-    .groupBy(_.map(_.x))
-    .map((_, ys) => findSublists(ys.flatMap(_.map(_.y).toSet).toList.sorted).size).sum
+  island.flatMap(_.fences)
+    .groupBy(fence => (fence.isHorizontal, fence.between))
+    .values.map(_.map(_.inCommon))
+    .map(_.toList.distinct.sorted)
+    .map(countSublists)
+    .sum
 
 val part2 = islands.map(island => island.size * sides(island)).sum
