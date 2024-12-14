@@ -19,6 +19,22 @@ case object Bots:
   }
 
 val bots = input.map(Bots.parse)
+
 val part1 = bots.map(_.posAt(100))
   .flatMap(_.quadrant).groupBy(x => x).values.map(_.size).product
 
+def drawBotsAt(t: Int) = {
+  val positions = bots.map(_.posAt(t))
+  (0 until xmax).map(y => {
+    (0 until xmax).map(x => {
+      val p = Point(x, y)
+      if positions.contains(p) then '#' else ' '
+    }).mkString
+  }).mkString("\n")
+}
+
+val part2 = LazyList.from(0)
+  .map(drawBotsAt)
+  .indexWhere(_.contains("###############################"))
+
+drawBotsAt(part2)
