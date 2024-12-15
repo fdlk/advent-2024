@@ -26,8 +26,7 @@ case class State(robot: Point, packetLefts: Set[Point]):
   val packets: Set[Point] = packetLefts ++ packetRights
   def move(instruction: Char): State = robot.move(instruction) match {
     case moved if moved.charAt == '#' => this
-    case moved if !packets.contains(moved) => copy(robot = moved
-)
+    case moved if !packets.contains(moved) => copy(robot = moved)
     case moved => push(packetLeft(moved), instruction).map(_.move(instruction)).getOrElse(this)
   }
   def packetLeft(packet: Point) = if packetRights.contains(packet) then packet.move('<') else packet
