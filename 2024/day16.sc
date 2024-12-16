@@ -1,6 +1,6 @@
 import common.{Grid, aStarSearch, loadPackets}
 
-val input = loadPackets(List("day16.txt"))
+val input = loadPackets(List("day16-test.txt"))
 
 val ys = input.indices
 val xs = input.head.indices
@@ -31,10 +31,19 @@ case class State(location: Point = start, facing: Direction = Direction.East):
   def neighbors: Iterable[State] = Direction.values.toSeq.map(d => State(location.move(d), d))
     .filter(_.location.charAt != '#')
 
-val grid: Grid[State] = new Grid[State] {
-  override def heuristicDistanceToFinish(from: State): Int = end.distanceTo(from.location)
+def grid(goal: Point): Grid[State] = new Grid[State] {
+  override def heuristicDistanceToFinish(from: State): Int = goal.distanceTo(from.location)
   override def getNeighbours(state: State): Iterable[State] = state.neighbors
   override def moveCost(from: State, to: State): Int = 1 + (if from.facing != to.facing then 1000 else 0)
 }
 
-aStarSearch(State(), grid, _.location == end)
+val part1 = aStarSearch(State(), grid(end), _.location == end).get
+
+def shortestRoutePast(p: Point): Option[Int] =
+  aStarSearch(State(), grid(p), _.location == p)
+    .filter(_ <= part1)
+    .flatMap(cost => aStarSearch(State(location = p), grid(end), _.location == end).map(_ + cost))
+
+points.filter(_.charAt != '#')
+  .flatMap(shortestRoutePast)
+  .count(_ <= part1)
