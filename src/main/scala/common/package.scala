@@ -92,23 +92,22 @@ package object common {
     def moveCost(from: T, to: T): Int
   }
 
-
-  def aStarSearch[T](start: T, grid: Grid[T], isFinished: T => Boolean): Option[(Int, List[T])] = {
+  def aStarSearch[T](start: T, grid: Grid[T], isFinished: T => Boolean): Option[(Int, Map[T, Int])] = {
     case class NodeInfo(node: T, costFromStart: Int, estimatedTotalCost: Int) extends Comparable[NodeInfo] {
       override def compareTo(o: NodeInfo): Int = estimatedTotalCost.compareTo(o.estimatedTotalCost)
     }
-    val comeFrom: mutable.Map[T, T] = mutable.Map()
+    val cost: mutable.Map[T, Int] = mutable.Map()
     val open: java.util.PriorityQueue[NodeInfo] = new java.util.PriorityQueue()
     open.add(NodeInfo(start, 0, grid.heuristicDistanceToFinish(start)))
 
 
     @tailrec
-    def loop(closed: Set[T]): Option[(Int, List[T])] = {
+    def loop(closed: Set[T]): Option[(Int, Map[T, Int])] = {
       if (open.isEmpty) return None
       val NodeInfo(current, currentCostFromStart, estimatedTotalCost) = open.poll()
+      cost.put(current, currentCostFromStart)
       if (isFinished(current)) {
-        println(comeFrom(comeFrom(current)))
-        return Some((estimatedTotalCost, LazyList.iterate(current)(comeFrom).takeWhile(_ != start).toList))
+        return Some((estimatedTotalCost, cost.toMap))
       }
       grid.getNeighbours(current)
         .filterNot(closed.contains)
@@ -117,7 +116,6 @@ package object common {
             val neighborCostFromStart = currentCostFromStart + grid.moveCost(current, neighbor)
             if (!open.exists(nodeInfo => nodeInfo.node == neighbor && nodeInfo.costFromStart <= neighborCostFromStart)) {
               open.removeIf(_.node == neighbor)
-              comeFrom.put(neighbor, current)
               open.offer(NodeInfo(neighbor, neighborCostFromStart, neighborCostFromStart + grid.heuristicDistanceToFinish(neighbor)))
             }
           }
