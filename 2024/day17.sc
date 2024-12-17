@@ -27,7 +27,7 @@ case class Computer(a: Long = 0, b: Long = 0, c: Long = 0, program: List[Int] = 
 
   def next: Computer = opcode match {
     // adv
-    case 0 => copy(a = Math.floor(a / Math.pow(2, comboOperand)).toLong).incrementIp
+    case 0 => copy(a = a >> comboOperand).incrementIp
     // bxl
     case 1 => copy(b = b ^ literalOperand).incrementIp
     // bst
@@ -40,9 +40,9 @@ case class Computer(a: Long = 0, b: Long = 0, c: Long = 0, program: List[Int] = 
     // out
     case 5 => incrementIp
     // bdv
-    case 6 => copy(b = Math.floor(a / Math.pow(2, comboOperand)).toLong).incrementIp
+    case 6 => copy(b = a >> comboOperand).incrementIp
     // cdv
-    case 7 => copy(c = Math.floor(a / Math.pow(2, comboOperand)).toLong).incrementIp
+    case 7 => copy(c = a >> comboOperand).incrementIp
   }
   def run: LazyList[Int] = LazyList.iterate(this)(_.next).takeWhile(!_.isHalted).flatMap(_.output)
 
