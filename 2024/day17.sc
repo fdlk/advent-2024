@@ -56,15 +56,13 @@ val computer = loadPackets(List("day17.txt")).match {
     Computer(a.toInt, b.toInt, c.toInt, parseProgram(program))
 }
 
-val part1 = computer.run
+val part1 = computer.run.mkString(",")
 
 @tailrec
 def findNextDigit(prefixes: List[Long], length: Int, goal: List[Int] = computer.program): List[Long] = {
   if length > goal.length then prefixes
-  else {
-    findNextDigit(prefixes.flatMap(prefix => (0 to 7).map(8 * prefix + _))
+  else findNextDigit(prefixes.flatMap(prefix => (0 to 7).map(8 * prefix + _))
       .filter(a => computer.copy(a = a).run == goal.takeRight(length)), length + 1)
-  }
 }
 
 val part2 = findNextDigit(List(0L), 1, computer.program).min
