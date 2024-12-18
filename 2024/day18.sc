@@ -1,4 +1,4 @@
-import common.{Grid, aStarSearch, loadPackets}
+import common.{Grid, aStarSearch, binarySearch, loadPackets}
 
 import scala.annotation.tailrec
 
@@ -31,20 +31,14 @@ val corrupted: Seq[Point] = loadPackets(List("day18.txt")).map({
   case s"${x},${y}" => Point(x.toInt, y.toInt)
 })
 
-def grid(t: Int): Grid[Point] = new Grid[Point]:
+def grid(corrupted: Set[Point]): Grid[Point] = new Grid[Point]:
   override def heuristicDistanceToFinish(from: Point): Int = from.distance(end)
-  override def getNeighbours(state: Point): Iterable[Point] = state.neighbors.filterNot(corrupted.take(t).contains(_))
+  override def getNeighbours(state: Point): Iterable[Point] = state.neighbors.filterNot(corrupted.contains)
   override def moveCost(from: Point, to: Point): Int = from.distance(to)
 
-val part1 = aStarSearch(start, grid(1024), _ == end)
+def findPath(t: Int) = aStarSearch(start, grid(corrupted.take(t).toSet), _ == end)
 
-@tailrec
-def search(range: Range, pred: Int => Boolean): Int =
-  if range.size == 1
-  then range.start
-  else
-    val mid: Int = range.start + 1 + (range.end - range.start) / 2
-    search(if pred(mid) then mid to range.end else range.start until mid, pred)
+val (part1, _) = findPath(1024).get
 
-val tBlock = search(corrupted.indices, t => aStarSearch(start, grid(t), _ == end).isDefined)
-val part2 = corrupted(tBlock)
+val t = binarySearch(corrupted.indices, findPath(_).isDefined)
+val part2 = corrupted(t)

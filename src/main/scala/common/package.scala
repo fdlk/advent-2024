@@ -124,4 +124,12 @@ package object common {
     }
     loop(Set())
   }
+
+  @tailrec
+  def binarySearch(range: Range, pred: Int => Boolean): Int =
+    if range.size == 1
+    then range.start
+    else
+      val mid: Int = range.start + 1 + (range.end - range.start) / 2
+      binarySearch(if pred(mid) then mid to range.end else range.start until mid, pred)
 }
