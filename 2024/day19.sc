@@ -5,17 +5,34 @@ val input = loadPackets(List("day19.txt"))
 val towels = input.head.split(",").map(_.trim)
 val patterns = input.drop(2)
 
-val possiblePatterns: mutable.Map[String, Boolean] = mutable.Map();
+val possible: mutable.Map[String, Boolean] = mutable.Map()
 
 def isPossible(pattern: String): Boolean =
   if pattern.isEmpty
   then true
-  else possiblePatterns.getOrElse(pattern, {
-    val possible = towels.filter(pattern.startsWith)
+  else possible.getOrElse(pattern, {
+    val result = towels.filter(pattern.startsWith)
       .map(_.length)
       .exists(n => isPossible(pattern.substring(n)))
-    possiblePatterns.put(pattern, possible)
-    possible
+    possible.put(pattern, result)
+    result
   })
 
-val part1 = patterns.count(isPossible)
+val possiblePatterns = patterns.filter(isPossible)
+val part1 = possiblePatterns.size
+
+val howManyPatterns: mutable.Map[String, Long] = mutable.Map()
+
+def countPossible(pattern: String): Long =
+  if pattern.isEmpty then 1L
+  else howManyPatterns.getOrElse(pattern, {
+    val result = towels.filter(pattern.startsWith)
+      .map(_.length)
+      .map(pattern.substring)
+      .map(countPossible)
+      .sum
+    howManyPatterns.put(pattern, result)
+    result
+  })
+
+val part2 = possiblePatterns.map(countPossible).sum
