@@ -58,26 +58,17 @@ def findPath(state: Point, soFar: List[Point] = Nil): List[Point] =
 
 val path = findPath(end).toVector
 
-val cheats = for
-  from <- path.indices
-  to <- from + 100 until path.indices.end
-  distance = path(from).distanceTo(path(to))
-  if distance <= 2
-  profit = to - from - distance
-  if profit >= 100
-yield profit
+def countCheats(nanos: Int, minProfit: Int = 100): Int = {
+  val cheats = for
+    from <- path.indices
+    to <- from + minProfit until path.indices.end
+    distance = path(from).distanceTo(path(to))
+    if distance <= nanos
+    profit = to - from - distance
+    if profit >= minProfit
+  yield profit
+  cheats.size
+}
 
-
-val part1 = cheats.count(_ >= 100)
-
-val newcheats = for
-  from <- path.indices
-  to <- from + 100 until path.indices.end
-  distance = path(from).distanceTo(path(to))
-  if distance <= 20
-  profit = to - from - distance
-  if profit >= 100
-yield profit
-
-
-val part2 = newcheats.count(_ >= 100)
+val part1 = countCheats(2)
+val part2 = countCheats(20)
