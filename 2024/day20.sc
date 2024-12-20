@@ -20,8 +20,6 @@ case class Point(x: Int, y: Int):
     case Direction.West => copy(x = x - 1)
   }
 
-  def onGrid: Boolean = xs.contains(x) && ys.contains(y)
-
   def distanceTo(other: Point): Int = (other.x - x).abs + (other.y - y).abs
 
   def isWall: Boolean = charAt == '#'
@@ -38,7 +36,7 @@ val end = points.find(_.charAt == 'E').get
 
 
 val grid: Grid[Point] = new Grid[Point] {
-  override def heuristicDistanceToFinish(from: Point): Int = 0
+  override def heuristicDistanceToFinish(from: Point): Int = from.distanceTo(end)
   override def getNeighbours(Point: Point): Iterable[Point] = Point.neighbors
   override def moveCost(from: Point, to: Point): Int = 1
 }
