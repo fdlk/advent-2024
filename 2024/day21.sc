@@ -9,6 +9,7 @@ case class Pos(row: Int, col: Int):
     case 'v' => copy(row = row + 1)
     case '<' => copy(col = col - 1)
   }
+  def minus(other: Pos): Pos = copy(row = row - other.row, col = col - other.col)
 
 case class Keypad(keypad: IndexedSeq[String]):
   def find(char: Char): Pos =
@@ -19,19 +20,15 @@ case class Keypad(keypad: IndexedSeq[String]):
   def contains(pos: Pos): Boolean =
     keypad.indices.contains(pos.row) &&
       keypad.head.indices.contains(pos.col) &&
-      charAt(pos) != ' '
+      keypad(pos.row)(pos.col) != ' '
 
-  def charAt(pos: Pos): Char = keypad(pos.row)(pos.col)
-
-  def moves(from: Pos, to: Char): Seq[Char] =
-    val Pos(fromRow, fromCol) = from
-    val Pos(toRow, toCol) = find(to)
-    val numDown = toRow - fromRow
-    val numRight = toCol - fromCol
-    List.fill(numDown)('v') ::: List.fill(-numDown)('^') ::: List.fill(numRight)('>') ::: List.fill(-numRight)('<')
+  def moves(from: Pos, to: Pos): String =
+    val Pos(numDown, numRight) = to.minus(from)
+    (List.fill(numDown)('v') ::: List.fill(-numDown)('^') :::
+      List.fill(numRight)('>') ::: List.fill(-numRight)('<')).mkString
 
   @tailrec
-  final def canType(pos: Pos, code: Seq[Char]): Boolean =
+  final def canType(pos: Pos, code: String): Boolean =
     if code.isEmpty then true
     else
       val moved = pos.move(code.head)
@@ -39,35 +36,26 @@ case class Keypad(keypad: IndexedSeq[String]):
 
   def codes(from: Char, to: Char): Seq[String] =
     val fromPos = find(from)
-    moves(fromPos, to).permutations.distinct
-      .filter(code => canType(fromPos, code))
-      .map(_.mkString).toSeq
+    moves(fromPos, find(to)).permutations.distinct
+      .filter(canType(fromPos, _))
+      .map(_ + 'A').toSeq
 
 val numeric = Keypad(Vector("789", "456", "123", " 0A"))
 val directional = Keypad(Vector(" ^A", "<v>"))
 
-case object Memos:
-  def humanTypeCost(code: String): Long =
-    s"A${code}A".sliding(2)
-      .map(pair => directional.codes(pair.head, pair(1)).map(_.length + 1).min)
+case object Robots:
+  def typeCost(keypad: Keypad, code: String, numRobots: Int): Long =
+    if numRobots == 0
+    then code.length
+    else code.prepended('A').sliding(2)
+      .map(pair => keypad.codes(pair.head, pair.last))
+      .map(_.map(typeCostMemo(directional, _, numRobots - 1)).min)
       .sum
+  val typeCostMemo: Memo[(Keypad, String, Int), Long] = Memo(typeCost.tupled)
 
-  def robotTypeCost(code: String, n: Int): Long =
-    if n == 1 then humanTypeCost(code)
-    else s"A${code}A".sliding(2)
-      .map(pair => directional.codes(pair.head, pair(1))
-        .map(c => costOnNDirectionalKeypads(c, n - 1)).min)
-      .sum
-
-  val costOnNDirectionalKeypads: Memo[(String, Int), Long] = Memo(robotTypeCost.tupled)
-
-  def costOnNumericKeypad(code: String, numRobots: Int): Long =
-    s"A$code".sliding(2)
-      .map(pair => numeric.codes(pair.head, pair(1)).map(c => costOnNDirectionalKeypads(c, numRobots)).min)
-      .sum
-
-  def complexity(code: String, numRobots: Int): Long = code.dropRight(1).toInt * costOnNumericKeypad(code, numRobots)
+def complexity(code: String, numRobots: Int): Long = code.dropRight(1).toInt *
+  Robots.typeCostMemo(numeric, code, numRobots)
 
 val codes = loadPackets(List("day21.txt"))
-val part1 = codes.map(c => Memos.complexity(c, 2)).sum
-val part2 = codes.map(c => Memos.complexity(c, 25)).sum
+val part1 = codes.map(c => complexity(c, 3)).sum
+val part2 = codes.map(c => complexity(c, 26)).sum
