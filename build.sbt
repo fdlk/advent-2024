@@ -26,7 +26,7 @@ version := "1.0"
 // You can define other libraries as dependencies in your build like this:
 
 //libraryDependencies += "com.lihaoyi" %% "fastparse" % "2.3.3"
-//libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4"
+libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.1.0"
 //// https://mvnrepository.com/artifact/gov.nist.math/jama
 //libraryDependencies += "gov.nist.math" % "jama" % "1.0.3"
 

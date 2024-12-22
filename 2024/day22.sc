@@ -1,4 +1,5 @@
 import common.{loadPackets, time}
+import scala.collection.parallel.CollectionConverters._
 
 val input = loadPackets(List("day22.txt")).map(_.toLong)
 
@@ -17,13 +18,13 @@ case class Buyer(number: Long):
   val diffs: List[Int] = prices.sliding(2).map(pair => pair.last - pair.head).toList
   val slidingDiffs: List[List[Int]] = diffs.sliding(4).map(_.toList).toList
   val priceForDiffs: Map[List[Int], Int] =
-    slidingDiffs.zip(prices.drop(4)).foldLeft[Map[List[Int], Int]](Map())((a, b) => if a.contains(b._1) then a else a.updated(b._1, b._2))
+    slidingDiffs.zip(prices.drop(4)).groupMapReduce[List[Int], Int](_._1)(_._2)((first, second) => first)
 
-val buyers = input.map(Buyer.apply)
+val buyers = input.par.map(Buyer.apply)
+
 val part1 = buyers.map(_.numbers.last).sum
 
-val allDiffs = buyers.flatMap(_.slidingDiffs.toVector).distinct
-def totalPriceForDiff(trigger: List[Int]) =
-  buyers.flatMap(_.priceForDiffs.get(trigger)).sum
+val part2 = buyers.par.flatMap(_.slidingDiffs).distinct
+  .map(trigger => buyers.flatMap(_.priceForDiffs.get(trigger)).sum)
+  .max
 
-val part2 = allDiffs.map(totalPriceForDiff).max
