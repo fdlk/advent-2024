@@ -1,5 +1,5 @@
 import common.loadPackets
-import scala.collection.parallel.CollectionConverters.ImmutableSeqIsParallelizable
+import scala.collection.parallel.CollectionConverters._
 
 import scala.annotation.tailrec
 import scala.util.Random
@@ -80,7 +80,7 @@ val testcases: List[Long] = 0L :: 0L :: 0L :: max :: max :: 0L :: (0 until 20).m
 case class Swaps(swaps: List[String]):
   val groups: List[List[String]] = swaps.grouped(2).toList
   val circuit = initialCircuit.swap(groups)
-  lazy val score: Int = testcases.grouped(2).map({ case List(x, y) => circuit.countErrors(x, y) }).sum
+  val score: Int = testcases.grouped(2).map({ case List(x, y) => circuit.countErrors(x, y) }).sum
 
   def mutate: Swaps = {
     val swapIndex = random.nextInt(swaps.length)
@@ -94,44 +94,20 @@ case class Swaps(swaps: List[String]):
     Swaps(groups.updated(groupIndex, other.groups(groupIndex)).flatten)
   }
 
-val swaps = Swaps(Random.shuffle(outputs).take(8).sorted)
-swaps.score
-
 case class Population(individuals: List[Swaps]):
-  val foo = individuals.par.map(_.score).toList
-  val sorted = individuals.sortBy(individual => individual.score)
+  val sorted = individuals.distinct.sortBy(individual => individual.score)
   val elite = sorted.take(20)
+  val fittest = sorted.head
   val survivors = sorted.take(500)
-  val crossedOver = survivors.combinations(2).take(400).map({
+  val crossedOver = survivors.combinations(2).take(400).toList.par.map({
     case List(a, b) => a.crossingOver(b)
   })
-  val mutated = survivors.map(_.mutate)
-
+  val mutated = survivors.par.map(_.mutate)
   def evolve(): Population = Population(elite ++ crossedOver ++ mutated)
 
-val candidate = Swaps(List("qjj", "gjc", "qsb", "z39", "z26", "gvm", "vfq", "ffg"))
-val individuals = candidate :: List.fill(199)({
+val individuals = List.fill(1000)({
   Swaps(Random.shuffle(outputs).take(8))
 })
 
-
-val pop: Population = Population(individuals)
-pop.elite.head.score
-pop.evolve().elite.head.score
-
-val evolution = LazyList.iterate(pop)(_.evolve())
-  .map(_.elite.head)
-
-val evolved = evolution
-  .sliding(3)
-  .map(_.toList)
-  .find({case List(a, _, b) => b.score == a.score})
-  .get.head
-
-evolved.score
-
-val solution: Swaps = evolution.find(_.score == 0).get
-val part2 = solution.swaps.sorted.mkString(",")
-
-// val solution: Swaps = Swaps(List(qjj, gjc, qsb, z39, z26, gvm, wmp, z17))
-// gjc,gvm,qjj,qsb,wmp,z17,z26,z39
+val evolution = LazyList.iterate(Population(individuals))(_.evolve()).map(_.fittest)
+val part2 = evolution.find(_.score == 0).get.swaps.sorted.mkString(",")
